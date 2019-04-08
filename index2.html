@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <canvas id="canvas" width="500" height="500"></canvas>
+    <script>
+        var canvas = document.getElementById('canvas');
+        var context = canvas.getContext('2d');
+        var c1 = new Shape(100, 100, 50);
+        var c2 = new Shape(200, 200, 50);
+
+        canvas.onmousedown  = function (ev) {
+            console.log('aaa')
+            var ev = ev || window.event;
+            var point = {
+                x: ev.clientX - canvas.offsetLeft,
+                y: ev.clientY - canvas.offsetTop
+            };
+            c1.reDraw(point);
+            c2.reDraw(point);
+
+        }
+        c1.click = function () {
+            alert('c1')
+        }
+        c2.click = function () {
+            alert('c2')
+        }
+        function Shape(x, y, r) {
+            this.x = x;
+            this.y = y;
+            this.r = r;
+            context.beginPath();
+            context.arc(this.x, this.y, this.r, 360 * Math.PI / 180, false);
+            context.closePath();
+            context.fill();
+
+        }
+        Shape.prototype.reDraw = function (point) {
+            context.beginPath();
+            context.arc(this.x, this.y, this.r, 360 * Math.PI / 180, false);
+            context.closePath();
+            context.fill();
+            if (context.isPointInPath(point.x, point.y)) {
+                console.log('bbb')
+                this.click();
+            }
+        }
+    </script>
+</body>
+
+</html>

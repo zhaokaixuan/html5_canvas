@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <canvas id="canvas" width="500" height="500" style="border:1px solid"></canvas>
+    <script>
+        var canvas = document.getElementById('canvas');
+        var context = canvas.getContext('2d');
+        canvas.addEventListener("mousedown",function(ev){
+            console.log('aaa')
+            var ev = ev||window.event;
+            context.moveTo(ev.clientX-canvas.offsetLeft,ev.clientY-canvas.offsetTop)
+            document.onmousemove =function(ev){
+                var ev =ev||window.event;
+                context.lineTo(ev.clientX-canvas.offsetLeft,ev.clientY-canvas.offsetTop);
+                context.stroke()
+            }
+            document.onmouseup = function(){
+                document.onmousemove = null;
+                document.onmouseup = null;
+            }   
+        })
+        // context.fillRect(0,0,100,100);
+        // var num =0;
+        // setInterval(function(){
+        //     num++;
+        //     context.clearRect(0,0,context.width,context.height)
+        //     context.fillRect(num,num,100,100)
+        // },30)
+    </script>
+</body>
+
+</html>
