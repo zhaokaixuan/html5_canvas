@@ -13,10 +13,10 @@
     <button type="button" id="btn1">绘制</button>
     <button type="button" id="btn2">放大</button>
     <button type="button" id="btn3">缩小</button>
+    <button type="button" id="btn4">保存</button>
     <script>
         function Cans(){
             this.imgSrc = "./image/1.jpg";//图片
-            this.resPosArr = [];//预识别坐标
             this.initArr = [];//相对于图片的坐标集
             this.iconArr = [];//相对于画布的坐标集
             this.imgX = 0;//图片原点（左上角）坐标
@@ -44,33 +44,13 @@
                 // this_.imgWidthHeightRatio = this_.img.width/this_.img.height; 原计划是画布宽高比根据所上传的图片确定修改为固定比例  
                 this_.ratioImgCanvas = this_.img.width / this_.canvasWidth;     // 图片的宽度/canvas画布宽度
                 this_.ratioImgCanvas1 = this_.img.height / this_.canvasHeight;  // 图片的高度/canvas画布高度
-
-                for (let i = 0; i < this_.resPosArr.length; i++) {      // resPosArr 为后端取来的坐标数组 longitude 横坐标x，latitude 纵坐标y，包含一些其他相机数据
-                    this_.initArr[i] = {};                            // 初始化原有坐标集合，相对背景定位 eg：[{x:110,y:110},{x:220,y:220},{x:330,y:330},{x:110,y:69}]; 
-                    this_.initArr[i].x = (this_.resPosArr[i].longitude) / this_.ratioImgCanvas;    // 根据 图片与canvas宽高比换算出，当图片平铺在canvas上时，坐标在canvas上的坐标，方便绘图函数绘制坐标为位置，（放大缩小时需要原有坐标，该数组值不会根据惭怍变化而变化，放大缩小或者拖动）。
-                    this_.initArr[i].y = (this_.resPosArr[i].latitude) / this_.ratioImgCanvas1;
-                }
-                console.log(this_.initArr);
-                for (let k = 0; k < this_.initArr.length; k++) {       // iconArr 绘图函数绘图时坐标为位置，放大缩小/拖动，坐标在canvas上的坐标会一直变化（相对背景图片不会变化）
-                    this_.iconArr[k] = {};
-                    this_.iconArr[k].x = this_.initArr[k].x;
-                    this_.iconArr[k].y = this_.initArr[k].y;
-                }
                 this_.drawImageCanvas();   // 调用绘图函数
             }
             this.img.src = this.imgSrc; //矢量图
-            /*icon图片对象*/
-            this.icon = new Image();
-            this.icon.onload = function () {
-                this_.iconIsLoaded = true;
-                this_.drawImageCanvas();
-            }
-            this.icon.src = "image/icon.png"; // 地图上原有的图标
             this.addIcon = new Image();
             this.addIcon.onload = function () {
             }
             this.addIcon.src = 'image/icon_edit.png';// 地图上新增的图标
-            console.log(this.addIcon);
         };
         /*-----绘图函数-----*/
         Cans.prototype.drawImageCanvas = function(x, y) {
@@ -84,8 +64,6 @@
             /*未点击新增坐标时，不绘制新增icon*/
              if (x !== undefined && y !== undefined && x !== '' && y !== '') {
                  this.context.drawImage(this.addIcon, x - 16, y - 16, 32, 32)           // 画新增坐标
-             } else if (this.addIconX !== '' && this.addIconY !== '') {
-                 this.context.drawImage(this.addIcon, this.addIconX - 16, this.addIconY - 16, 32, 32)           // 画新增坐标
              }
         };
         /*-----鼠标按下/拖动/抬起事件-----*/
@@ -171,15 +149,6 @@
                 this.imgScale *= 1.2;
                 this.imgX = (this.canvas.width - this.canvas.width * this.imgScale) / 2;
                 this.imgY = (this.canvas.height - this.canvas.height * this.imgScale) / 2;
-                // 放大缩小需处理 原有坐标集合，注意点
-                for (let i = 0; i < this.initArr.length; i++) {
-                    this.initArr[i].x = this.initArr[i].x * 1.2;
-                    this.initArr[i].y = this.initArr[i].y * 1.2;
-                }
-                for (let j = 0; j < this.iconArr.length; j++) {
-                    this.iconArr[j].x = this.imgX + this.initArr[j].x;
-                    this.iconArr[j].y = this.imgY + this.initArr[j].y;
-                }
                 this.drawImageCanvas(this.addIconX2, this.addIconY2);
                 return false;
             } else {
@@ -195,16 +164,7 @@
             if (this.imgScale > 1) {
                 this.imgScale /= 1.2;
                 this.imgX = (this.canvas.width - this.canvas.width * this.imgScale) / 2;
-                this.imgY = (this.canvas.height - this.canvas.height * this.imgScale) / 2;
-
-                for (let i = 0; i < this.initArr.length; i++) {
-                    this.initArr[i].x = this.initArr[i].x / 1.2;
-                    this.initArr[i].y = this.initArr[i].y / 1.2;
-                }
-                for (let j = 0; j < this.iconArr.length; j++) {
-                    this.iconArr[j].x = this.imgX + this.initArr[j].x;
-                    this.iconArr[j].y = this.imgY + this.initArr[j].y;
-                }
+                this.imgY = (this.canvas.height - this.canvas.height * this.imgScale) / 2; 
                 this.drawImageCanvas(this.addIconX2, this.addIconY2);
                 // console.log('画布原点',this.imgX,this.imgY);
             } else {
@@ -217,64 +177,32 @@
         Cans.prototype.addBtnClick = function() {
             this.addIconX = this.canvas.width / 2;
             this.addIconY = this.canvas.height / 2;
-            this.drawImageCanvas(this.addIconX, this.addIconY);
-            this.addIconX1 = this.addIconX;
-            this.addIconY1 = this.addIconY;
+            var obj = this.canvasToImg(this.addIconX,this.addIconY);
+            this.drawImageCanvas(obj.x, obj.y);
+            this.addIconX1 = obj.x;
+            this.addIconY1 = obj.y;
         };
         /*-----关联相机页面-点击保存按钮-----*/
         Cans.prototype.saveBtnClick = function() {
-            console.log(this.locationMapDetail);
-            //if (this.locationMapDetail.img == null) {
-            //this.$alert('该区位暂未上传图片，请先上传图片', {
-            //confirmButtonText: '确定',
-            //center:true
-            //});
-            //return
-            //}
             console.log("当前放大倍数", this.imgScale);
 
             // 前面对于新增坐标的处理，坐标都是 新增坐标点在canvas上的位置，保存时需要通过计算，得到该坐标在背景图片的位置，保存的也将是计算得来的坐标值。
             // 计算这里我是分为两步，稍微有点绕，其实仔细想想也并不难，需多在纸上画画计算一下。
-            this.fx = ((this.addIconX1) - this.imgX) / this.imgScale;
-            this.fy = ((this.addIconY1) - this.imgY) / this.imgScale;
-            // console.log(this.fx,this.fy);
-            this.sx = (this.fx * this.img.width) / this.canvas.width;
-            this.sy = (this.fy * this.img.height) / this.canvas.height;
+            // this.fx = ((this.addIconX1) - this.imgX) / this.imgScale;
+            // this.fy = ((this.addIconY1) - this.imgY) / this.imgScale;
+            // // console.log(this.fx,this.fy);
+            // this.sx = (this.fx * this.img.width) / this.canvas.width;
+            // this.sy = (this.fy * this.img.height) / this.canvas.height;
              alert("保存的坐标点为" + this.sx + " : " + this.sy);
-            // this.$post(this.baseUrl + ' 后端接口 ?locationId=' + this.selectedMapId +
-            //     '&cameraId=' + this.selectedCameraId + '&longitude=' + this.sx + '&latitude=' + this.sy)
-            //     .then((res) => {
-            //         console.log(res);
-            //         if (res.data.code === '200' && res.data.msg === 'success') {
-            //             this.$notify.success({
-            //                 message: '保存成功',
-            //                 offset: 600
-            //             });
-            //             /*保存成功重新载入地图*/
-            //             this.initArr = [];
-            //             this.$fetch(this.baseUrl + '/接口地址/' + this.selectedMapId + '?withBlob=true&enableCoordinate=true').then((res) => {
-            //                 console.log(res);
-            //                 if (res.data.img == null) {
-            //                     this.imgSrc = '../../../../static/img/map/zhanweitu.png'
-            //                 } else {
-            //                     this.imgSrc = res.data.img;
-            //                 }
-            //                 if (res.data.cameraMapResourceDtos != null) {
-            //                     this.resPosArr = res.data.cameraMapResourceDtos;
-            //                     this.cameraCount = this.resPosArr.length;
-            //                 } else {
-            //                     this.resPosArr = [];
-            //                     this.cameraCount = this.resPosArr.length;
-            //                 }
-            //             })
-            //         } else {
-            //             this.$notify({
-            //                 message: '保存失败',
-            //                 offset: 600,
-            //                 type: 'warning'
-            //             });
-            //         }
-            //     })
+             alert(`${this.addIconX1},${this.addIconY1}`)
+        };
+        Cans.prototype.canvasToImg = function(x,y){
+            var fx = ((x) - this.imgX) / this.imgScale;
+            var fy = ((y) - this.imgY) / this.imgScale;
+            // console.log(this.fx,this.fy);
+            var sx = (fx * this.img.width) / this.canvas.width;
+            var sy = (fy * this.img.height) / this.canvas.height;
+            return {x:sx,y:sy}
         };
         /*-----window坐标转canvas坐标-----*/
         Cans.prototype.windowToCanvas = function(canvas, x, y) {
@@ -284,19 +212,27 @@
                 y: y - bbox.top - (bbox.height - canvas.height) / 2
             };
         };
+
+
+
+
         var a = new Cans();
-        a.mouseEvent()
+        a.mouseEvent();
         var btn1 = document.getElementById('btn1');
         btn1.onclick = function(){
-            a.addBtnClick()
+            a.addBtnClick();
         }
         var btn2 = document.getElementById('btn2');
         btn2.onclick = function(){
-            a.magnifyFn()
+            a.magnifyFn();
         }
         var btn3 = document.getElementById('btn3');
         btn3.onclick = function(){
-            a.shrinkFn()
+            a.shrinkFn();
+        }
+        var btn4 = document.getElementById('btn4');
+        btn4.onclick = function (){
+            a.saveBtnClick();
         }
     </script>
 </body>
