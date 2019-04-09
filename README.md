@@ -14,3 +14,5 @@ canvas基础知识练习
     通过鼠标在canvas上绘制多边形
 ## index7.html
     通过鼠标在canvas上绘制多个图形,图片缩放拖动，坐标转换
+## index8.html
+    在7的基础上优化

@@ -14,6 +14,7 @@
             margin: 0;
             padding: 0
         }
+
         canvas {
             border: 1px solid
         }
@@ -26,19 +27,81 @@
     <button type="button" id="btn2" data-value="rectangle">画矩形</button>
 
     <script>
+
+
+
+/**
+ * class Layer
+ * 绘制图形
+ **/
+class Layer{
+    //默认参数select,url
+    constructor({select,url}={select:"select",url:"456.jpg"}){
+        this.select = select;
+        this.canvas = document.getElementById('canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.flag = false;
+        this.url =url;
+        this.imgX = 0;
+        this.imgY = 0;
+        this.imgScale = 1;
+        this.rect = [];
+    }
+    //加载图片
+    loadImage(){
+        this.img = new Image();
+            this.img.src = url;
+            this.img.onload = function (chunk) {
+                this.drawImage()
+            }
+    }
+    //浏览器坐标转换为canvas坐标
+    windowToCanvas(canvas, x, y){
+        var bbox = canvas.getBoundingClientRect();
+            return {
+                x: x - bbox.left - (bbox.width - canvas.width) / 2,
+                y: y - bbox.top - (bbox.height - canvas.height) / 2
+            };
+    }
+    //绘制背景
+    drawImage(){
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.drawImage(this.img, 0, 0, this.img.width, this.img.height, this.imgX, this.imgY, this.img.width * this.imgScale, this.img.height * this.imgScale);
+            var newRect = this.rect.map(item=>{
+                var arr1 = this.canvasToImg(item[0],item[1]);
+                var arr2 = this.canvasToImg(item[2],item[3]);
+                return [...arr1,...arr2];
+            })
+            for (var i = 0, len = newRect.length; i < len; i++) {
+                    this.ctx.beginPath();
+                    this.ctx.strokeRect(newRect[i][0], newRect[i][1], newRect[i][2]-newRect[i][0], newRect[i][3]-newRect[i][1])
+                    this.ctx.closePath();
+                }
+    }
+    //图片缩放移动，图形坐标变换
+    canvasToImg(x,y){
+        var fx = (x)* this.imgScale+this.moveX ;
+        var fy = (y)*this.imgScale+this.moveY;
+            // // console.log(this.fx,this.fy);
+            //   var sx = (fx * this.img.width) / this.canvas.width;
+            //   var sy = (fy * this.img.height) / this.canvas.height;
+        return [fx,fy]
+    }
+    
+
+
+    
+}
         var select = 'select';
         var canvas = document.getElementById('canvas');
         var ctx = canvas.getContext('2d');
         var flag = false;
-        var x = 0;
-        var y = 0;
         var url = '456.jpg';
         var rect = [];
-        var rectImg = []
+        var rectImg = [];
         var imgX = 0;
         var imgY = 0;
         var imgScale = 1;
-        var wheel = false;
         loadImage();
         canvas.onmousedown = function (e) {
             if (select == "rectangle") {
@@ -47,6 +110,7 @@
             if (select == "select") {
                 selectMousedown(e)
             }
+
             canvas.onmousemove = function (e) {
                 if (select == "rectangle") {
                     rectMousemove(e)
@@ -54,6 +118,7 @@
                 if (select == "select") {
                     selectMousemove(e)
                 }
+
             };
         }
         canvas.onmouseup = function (e) {
@@ -65,9 +130,11 @@
                 selectMouseup(e)
             }
         }
+
         canvas.onmousewheel = canvas.onwheel = function (event) {
-            wheel = true;
-             pos = windowToCanvas(canvas, event.clientX, event.clientY);
+            var pos = windowToCanvas(canvas, event.clientX, event.clientY);
+            moveX = 0;
+            moveY = 0;
             if (event.wheelDelta > 0) {
                 imgScale *= 2;
                 imgX = imgX * 2 - pos.x;
@@ -79,6 +146,7 @@
             }
             drawImage();
         }
+
         //绘制矩形
         function rectMousedown(e) {
             x = e.offsetX;
@@ -90,10 +158,11 @@
         }
         function rectMouseup(e) {
             flag = false;
-            rect.push([x, y, e.offsetX, e.offsetY,imgX,imgY,imgScale]);
-            rectImg.push([(x-imgX)/imgScale,(y-imgY)/imgScale,(e.offsetX-imgX)/imgScale,(e.offsetY-imgY)/imgScale])
+            rect.push([x, y, e.offsetX, e.offsetY])
+            rectImg.push((x-imgX)/imgScale,(y-imgY)/imgScale,(e.offsetX-imgX)/imgScale,(e.offsetY-imgY)/imgScale);
             canvas.onmousemove = null;
         }
+
         //选择操作
         function selectMousedown(event) {
             pos = windowToCanvas(canvas, event.clientX, event.clientY);
@@ -101,17 +170,21 @@
         function selectMousemove(event) {
             canvas.style.cursor = "move";
             var pos1 = windowToCanvas(canvas, event.clientX, event.clientY);
-            var x = pos1.x - pos.x;
+            var x  = pos1.x - pos.x;
             var y = pos1.y - pos.y;
             pos = pos1;
             imgX += x;
             imgY += y;
+            moveX +=x;
+            moveY +=y;
+            
             drawImage();
         }
         function selectMouseup(event) {
             canvas.onmousemove = null;
             canvas.style.cursor = "default";
         }
+
         //画矩形
         function drawRect(e) {
             if (flag) {
@@ -125,8 +198,9 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0, img.width, img.height, imgX, imgY, img.width * imgScale, img.height * imgScale);
             var newRect = rect.map(item=>{
-                var arr = canvasToImg(item);
-                return arr;
+                var arr1 = canvasToImg(item[0],item[1]);
+                var arr2 = canvasToImg(item[2],item[3]);
+                return [...arr1,...arr2];
             })
             for (var i = 0, len = newRect.length; i < len; i++) {
                     ctx.beginPath();
@@ -139,7 +213,6 @@
             img = new Image();
             img.src = url;
             img.onload = function (chunk) {
-                rect = [[475,149,598,240,-2403.5,-775,8],[436,229,529,285,111.0625,75.5,1],[337,69,489,221,-318.875,34,2]]
                 drawImage()
             }
         }
@@ -152,19 +225,17 @@
             };
         }
         //坐标转换
-        function canvasToImg(obj){
-             var fx = (obj[0]-obj[4])* imgScale/obj[6] + imgX ;
-             var fy = (obj[1] -obj[5])* imgScale/obj[6] + imgY ;
-             var sx = (obj[2]-obj[4])* imgScale/obj[6] + imgX  ;
-             var sy = (obj[3]-obj[5])* imgScale /obj[6]+ imgY ;
+        function canvasToImg(x,y){
+             var fx = (x)* imgScale+moveX ;
+             var fy = (y)*imgScale+moveY;
             // // console.log(this.fx,this.fy);
-            //  var sx = (fx * this.img.width) / this.canvas.width;
-            //  var sy = (fy * this.img.height) / this.canvas.height;
-            console.log(obj)
-            console.log('--------------')
-            console.log([fx,fy,sx,sy])
-            return [fx,fy,sx,sy]
+            //   var sx = (fx * this.img.width) / this.canvas.width;
+            //   var sy = (fy * this.img.height) / this.canvas.height;
+            return [fx,fy]
         };
+
+
+
         var btn1 = document.getElementById('btn1');
         btn1.onclick = function(){
             select = "select";
@@ -173,6 +244,7 @@
         btn2.onclick = function(){
             select = 'rectangle'
         }
+
     </script>
 </body>
 
