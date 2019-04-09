@@ -27,7 +27,7 @@
             y = e.offsetY;
             flag = true;
             canvas.onmousemove = function(e){
-                drawCircle(e);
+                drawRect(e);
             };
         }
         canvas.onmouseup = function(e){
@@ -49,7 +49,7 @@
         //画矩形
         function drawRect(e){
             if(flag){
-               clear()
+                clear()
                 ctx.beginPath();
                 ctx.strokeRect(x,y,e.offsetX-x,e.offsetY-y);
             }

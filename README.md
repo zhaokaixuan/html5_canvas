@@ -9,4 +9,8 @@ canvas基础知识练习
 ## index4.html
     canvas上画出坐标集合，并标记新坐标，背景支持放大缩小拖动功能
 ## index5.html
-    通过鼠标在canvas上绘制：线、矩形、直线、圆
+    通过鼠标在canvas上绘制：线、矩形、直线、圆(绘制单个图形)
+## index6.html
+    通过鼠标在canvas上绘制多边形
+## index7.html
+    通过鼠标在canvas上绘制多个图形,图片缩放拖动，坐标转换
