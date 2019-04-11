@@ -15,4 +15,6 @@ canvas基础知识练习
 ## index7.html
     通过鼠标在canvas上绘制多个图形,图片缩放拖动，坐标转换
 ## index8.html
-    在7的基础上优化
+    在7的基础上优化（未完成）
+## index9.html
+    canvas图像数据查看(eg:图像反色)
